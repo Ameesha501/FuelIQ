@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environments
+ven/
+venv/
+env/
+.env
+.venv/
+
+# Environment / secrets
+.env
+*.env
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Model weights (large binary — store in releases or Git LFS)
+*.pt
+runs/
+
+# Uploads (user data)
+uploads/
+
+# Data folder (runtime)
+data/
+
+# Compiled
+*.pyc
+
+# YOLOv8 training images (large, not needed in repo)
+datasets/yolov8/train/
+datasets/yolov8/valid/
+datasets/yolov8/test/

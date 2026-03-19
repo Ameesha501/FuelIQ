@@ -1,0 +1,84 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>FuelIQ Dashboard</title>
+
+  <!-- Bootstrap CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<nav class="navbar navbar-dark bg-dark">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="#">FuelIQ</a>
+    <div class="d-flex">
+      <a class="btn btn-outline-light me-2" href="{{ url_for('download_sample') }}">Download Sample CSV</a>
+      <a class="btn btn-outline-light" href="#">Help</a>
+    </div>
+  </div>
+</nav>
+
+<div class="container py-4">
+  <div class="row g-4">
+    <div class="col-md-6">
+      <div class="card p-3">
+        <h5>Capture / Upload Image</h5>
+        <video id="video" autoplay playsinline class="w-100 rounded mb-2"></video>
+        <div class="d-flex gap-2">
+          <button id="snapBtn" class="btn btn-primary w-50">Capture & Detect</button>
+          <input type="file" id="imgInput" class="form-control w-50">
+        </div>
+        <canvas id="canvas" style="display:none;"></canvas>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card p-3">
+        <h5>Result</h5>
+        <img id="preview" class="w-100 rounded mb-2" src="" alt="">
+        <p><strong>Plate:</strong> <span id="plateText">-</span></p>
+        <p><strong>Wallet:</strong> <span id="walletInfo">-</span></p>
+
+        <div id="billingBlock" style="display:none;">
+          <label>Fuel Type</label>
+          <select id="fuelType" class="form-select mb-2">
+            <option>Petrol</option><option>Diesel</option><option>CNG</option>
+          </select>
+          <label>Liters</label>
+          <input id="liters" class="form-control mb-2" type="number" value="1" step="0.1">
+          <label>Rate (per liter)</label>
+          <input id="rate" class="form-control mb-2" type="number" value="100">
+          <div class="d-flex gap-2">
+            <button id="generateBill" class="btn btn-success w-50">Generate Bill</button>
+            <button id="purchaseBtn" class="btn btn-warning w-50">Purchase (Auto-Debit)</button>
+          </div>
+          <div id="billDetails" class="mt-3" style="display:none;">
+            <p><strong>Amount: ₹</strong><span id="billAmount">0</span></p>
+            <button id="downloadBill" class="btn btn-primary">Download Invoice</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <hr class="my-4">
+
+  <div class="card p-3">
+    <h5>Upload Wallet CSV</h5>
+    <form id="walletForm" enctype="multipart/form-data">
+      <input type="file" name="file" class="form-control mb-2" required>
+      <button class="btn btn-primary">Upload CSV</button>
+    </form>
+  </div>
+
+  <div id="logs" class="mt-3"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+</body>
+</html>

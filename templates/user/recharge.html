@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+
+{% block title %}Recharge Wallet{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <h1 class="mb-4"><i class="bi bi-credit-card"></i> Recharge Wallet</h1>
+            
+            {% if user_info %}
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <h6 class="text-muted">Current Balance</h6>
+                        <h2 class="text-primary">₹{{ "%.2f"|format(user_info.balance|float) }}</h2>
+                    </div>
+                    
+                    <form id="rechargeForm">
+                        <div class="mb-3">
+                            <label class="form-label"><strong>Recharge Amount (₹)</strong></label>
+                            <input type="number" class="form-control form-control-lg" 
+                                   id="rechargeAmount" min="100" step="100" required 
+                                   placeholder="Enter amount">
+                            <small class="text-muted">Minimum recharge: ₹100</small>
+                        </div>
+
+                        <!-- Quick Amount Buttons -->
+                        <div class="mb-3">
+                            <label class="form-label">Quick Amounts:</label>
+                            <div class="d-flex gap-2 flex-wrap">
+                                <button type="button" class="btn btn-outline-primary quick-amount-btn" data-amount="500">₹500</button>
+                                <button type="button" class="btn btn-outline-primary quick-amount-btn" data-amount="1000">₹1,000</button>
+                                <button type="button" class="btn btn-outline-primary quick-amount-btn" data-amount="2000">₹2,000</button>
+                                <button type="button" class="btn btn-outline-primary quick-amount-btn" data-amount="5000">₹5,000</button>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <h6 class="alert-heading"><i class="bi bi-calculator"></i> New Balance</h6>
+                            <h3 class="mb-0 text-success" id="newBalance">₹{{ "%.2f"|format(user_info.balance|float) }}</h3>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-check-circle"></i> Recharge Wallet
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-warning text-dark">
+                    <h6 class="mb-0"><i class="bi bi-info-circle"></i> Payment Information</h6>
+                </div>
+                <div class="card-body">
+                    <p class="small mb-0">
+                        <strong>Note:</strong> This is a demo system. In production, payment gateway integration 
+                        would be implemented here (UPI, Credit Card, Net Banking, etc.).
+                    </p>
+                </div>
+            </div>
+            {% else %}
+            <div class="alert alert-warning">
+                <i class="bi bi-exclamation-triangle"></i> Wallet information not found.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Success Modal -->
+<div class="modal fade" id="successModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title"><i class="bi bi-check-circle"></i> Recharge Successful</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Amount Recharged:</strong> <span id="modalAmount"></span></p>
+                <p><strong>New Balance:</strong> <span id="modalNewBalance"></span></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="window.location.reload()">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const currentBalance = {{ user_info.balance|float if user_info else 0 }};
+const rechargeAmountInput = document.getElementById('rechargeAmount');
+const newBalanceDisplay = document.getElementById('newBalance');
+
+// Quick amount buttons
+document.querySelectorAll('.quick-amount-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const amount = parseFloat(this.dataset.amount);
+        rechargeAmountInput.value = amount;
+        updateNewBalance();
+    });
+});
+
+// Update new balance when amount changes
+rechargeAmountInput.addEventListener('input', updateNewBalance);
+
+function updateNewBalance() {
+    const amount = parseFloat(rechargeAmountInput.value) || 0;
+    const newBalance = currentBalance + amount;
+    newBalanceDisplay.textContent = '₹' + newBalance.toFixed(2);
+}
+
+// Form submission
+document.getElementById('rechargeForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const amount = parseFloat(rechargeAmountInput.value);
+    
+    if (amount < 100) {
+        alert('Minimum recharge amount is ₹100');
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/recharge', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ amount: amount })
+        });
+
+        const data = await response.json();
+        
+        if (response.ok) {
+            document.getElementById('modalAmount').textContent = '₹' + amount.toFixed(2);
+            document.getElementById('modalNewBalance').textContent = '₹' + data.new_balance.toFixed(2);
+            
+            const modal = new bootstrap.Modal(document.getElementById('successModal'));
+            modal.show();
+        } else {
+            alert('Error: ' + (data.error || 'Recharge failed'));
+        }
+    } catch (error) {
+        alert('Error processing recharge. Please try again.');
+    }
+});
+</script>
+{% endblock %}
+
+

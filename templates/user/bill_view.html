@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}Bill Details{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="bi bi-receipt"></i> Bill Details</h1>
+        <div>
+            <button class="btn btn-primary" onclick="window.print()">
+                <i class="bi bi-printer"></i> Print / Save as PDF
+            </button>
+        </div>
+    </div>
+
+    {% if bill %}
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <!-- Bill Header -->
+                    <div class="text-center mb-4 pb-4 border-bottom">
+                        <h2 class="text-primary mb-1">FuelIQ</h2>
+                        <p class="text-muted mb-0">Smart Fueling System</p>
+                        <p class="text-muted small mb-0">Fuel Bill</p>
+                    </div>
+
+                    <!-- Bill Information -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <p class="mb-2"><strong>Bill ID:</strong> <code>{{ bill.bill_id }}</code></p>
+                            <p class="mb-2"><strong>Date:</strong> 
+                                {% if bill.timestamp %}
+                                {{ bill.timestamp[:19].replace('T', ' ') }}
+                                {% else %}
+                                -
+                                {% endif %}
+                            </p>
+                            <p class="mb-2"><strong>Vehicle Plate:</strong> <code>{{ bill.number_plate_id }}</code></p>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="mb-2"><strong>Wallet ID:</strong> <code>{{ bill.wallet_id }}</code></p>
+                            <p class="mb-2"><strong>Fuel Type:</strong> {{ bill.fuel_type or '-' }}</p>
+                            <p class="mb-2"><strong>Email Status:</strong> 
+                                {% if bill.email_sent %}
+                                <span class="badge bg-success">Sent</span>
+                                {% else %}
+                                <span class="badge bg-warning">Pending</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Bill Details Table -->
+                    <table class="table table-bordered">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Description</th>
+                                <th class="text-end">Quantity</th>
+                                <th class="text-end">Rate</th>
+                                <th class="text-end">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>{{ bill.fuel_type or 'Fuel' }}</td>
+                                <td class="text-end">{{ "%.2f"|format(bill.liters or 0) }} L</td>
+                                <td class="text-end">₹{{ "%.2f"|format(bill.rate or 0) }}</td>
+                                <td class="text-end fw-bold">₹{{ "%.2f"|format(bill.total_amount or 0) }}</td>
+                            </tr>
+                        </tbody>
+                        <tfoot class="table-light">
+                            <tr>
+                                <th colspan="3" class="text-end">Total Amount:</th>
+                                <th class="text-end text-primary">₹{{ "%.2f"|format(bill.total_amount or 0) }}</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+
+                    <!-- Balance Information -->
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <div class="alert alert-light">
+                                <p class="mb-1"><strong>Balance Before:</strong> ₹{{ "%.2f"|format(bill.balance_before or 0) }}</p>
+                                <p class="mb-1"><strong>Amount Deducted:</strong> ₹{{ "%.2f"|format(bill.total_amount or 0) }}</p>
+                                <p class="mb-0"><strong>Balance After:</strong> ₹{{ "%.2f"|format(bill.balance_after or 0) }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Footer -->
+                    <div class="text-center mt-4 pt-4 border-top">
+                        <p class="text-muted small mb-0">
+                            Thank you for using FuelIQ Smart Fueling System
+                        </p>
+                        <p class="text-muted small mb-0">
+                            This is a computer-generated bill. No signature required.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="alert alert-warning">
+        <i class="bi bi-exclamation-triangle"></i> Bill not found or access denied.
+    </div>
+    {% endif %}
+</div>
+
+<style>
+@media print {
+    .navbar, .btn, footer { display: none; }
+    .card { border: none; box-shadow: none; }
+}
+</style>
+{% endblock %}
+
+

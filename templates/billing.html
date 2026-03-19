@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container mt-5">
+    <div class="card shadow-lg p-4">
+        <h2 class="text-center mb-4 fw-bold">Fuel Billing</h2>
+
+        <!-- Billing Form -->
+        <form id="billingForm">
+
+            <!-- Number Plate -->
+            <div class="mb-3">
+                <label class="form-label fw-bold">Vehicle Number Plate</label>
+                <input type="text" id="plate" class="form-control" placeholder="Enter detected plate number">
+                <small class="text-muted">Example: KA05MU1234</small>
+            </div>
+
+            <!-- Fuel Type -->
+            <div class="mb-3">
+                <label class="form-label fw-bold">Fuel Type</label>
+                <select id="fuelType" class="form-select">
+                    <option value="Petrol">Petrol</option>
+                    <option value="Diesel">Diesel</option>
+                    <option value="CNG">CNG</option>
+                </select>
+            </div>
+
+            <!-- Liters -->
+            <div class="mb-3">
+                <label class="form-label fw-bold">Liters</label>
+                <input type="number" step="0.1" id="liters" class="form-control" placeholder="Enter fuel quantity">
+            </div>
+
+            <!-- Rate -->
+            <div class="mb-3">
+                <label class="form-label fw-bold">Rate per Liter (₹)</label>
+                <input type="number" id="rate" class="form-control" value="100">
+            </div>
+
+            <!-- Total Amount -->
+            <div class="mb-3">
+                <label class="form-label fw-bold">Total Amount (₹)</label>
+                <input type="text" id="totalAmount" class="form-control" readonly>
+            </div>
+
+            <button type="button" id="generateInvoiceBtn" class="btn btn-success w-100 mt-3">
+                Generate Invoice
+            </button>
+        </form>
+
+        <div id="billingMessage" class="mt-4 text-center fw-bold"></div>
+    </div>
+</div>
+
+
+<script>
+    // Auto calculate total
+    document.getElementById('liters').addEventListener('input', calculateTotal);
+    document.getElementById('rate').addEventListener('input', calculateTotal);
+
+    function calculateTotal() {
+        let liters = parseFloat(document.getElementById('liters').value) || 0;
+        let rate = parseFloat(document.getElementById('rate').value) || 0;
+        document.getElementById('totalAmount').value = (liters * rate).toFixed(2);
+    }
+
+    // Generate invoice
+    document.getElementById('generateInvoiceBtn').addEventListener('click', async () => {
+
+        const plate = document.getElementById('plate').value.trim();
+        const liters = document.getElementById('liters').value;
+        const rate = document.getElementById('rate').value;
+        const fuelType = document.getElementById('fuelType').value;
+        const total = document.getElementById('totalAmount').value;
+
+        if (!plate || !liters || !rate) {
+            document.getElementById('billingMessage').innerHTML =
+                "<span class='text-danger'>Please fill all fields</span>";
+            return;
+        }
+
+        let data = { plate, liters, rate, fuel: fuelType, total };
+
+        const response = await fetch("/invoice", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+        });
+
+        const html = await response.text();
+
+        // Open invoice in a new tab
+        let win = window.open();
+        win.document.write(html);
+        win.document.close();
+    });
+
+</script>
+
+{% endblock %}

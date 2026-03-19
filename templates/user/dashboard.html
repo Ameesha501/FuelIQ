@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+
+{% block title %}My Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="display-4 text-primary">My Dashboard</h1>
+            <p class="text-muted mb-0">Welcome, {{ current_user.name }}</p>
+        </div>
+        <span class="badge bg-success">Wallet Holder</span>
+    </div>
+
+    <!-- Wallet Balance Card -->
+    {% if user_info %}
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm bg-navy-blue text-white">
+                <div class="card-body">
+                    <h6 class="text-white-50 mb-2">Wallet Balance</h6>
+                    <h2 class="mb-0">₹{{ "%.2f"|format(user_info.balance|float) }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm bg-success text-white">
+                <div class="card-body">
+                    <h6 class="text-white-50 mb-2">Vehicle Plate</h6>
+                    <h4 class="mb-0"><code>{{ user_info.number_plate_id }}</code></h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm bg-info text-white">
+                <div class="card-body">
+                    <h6 class="text-white-50 mb-2">Fuel Type</h6>
+                    <h4 class="mb-0">{{ user_info.fuel_type or 'N/A' }}</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Recent Transactions -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="bi bi-clock-history"></i> Recent Transactions</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_transactions %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Type</th>
+                                    <th>Amount</th>
+                                    <th>Balance</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for txn in recent_transactions %}
+                                <tr>
+                                    <td>{{ txn.timestamp[:10] if txn.timestamp else '-' }}</td>
+                                    <td>
+                                        {% if txn.type == 'credit' %}
+                                        <span class="badge bg-success">Recharge</span>
+                                        {% else %}
+                                        <span class="badge bg-warning">Fuel</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="fw-bold {% if txn.type == 'credit' %}text-success{% else %}text-warning{% endif %}">
+                                        {% if txn.type == 'credit' %}+{% else %}-{% endif %}₹{{ "%.2f"|format(txn.amount or 0) }}
+                                    </td>
+                                    <td>₹{{ "%.2f"|format(txn.balance_after or 0) }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <a href="{{ url_for('user_transactions') }}" class="btn btn-sm btn-outline-primary">
+                        View All Transactions
+                    </a>
+                    {% else %}
+                    <p class="text-muted text-center py-3">No transactions yet</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Recent Bills -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="bi bi-receipt"></i> Recent Bills</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_bills %}
+                    <div class="list-group">
+                        {% for bill in recent_bills %}
+                        <a href="{{ url_for('user_bill_view', bill_id=bill.bill_id) }}" 
+                           class="list-group-item list-group-item-action">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1">{{ bill.bill_id }}</h6>
+                                    <small class="text-muted">
+                                        {{ bill.fuel_type }} - {{ "%.2f"|format(bill.liters or 0) }}L
+                                    </small>
+                                </div>
+                                <div class="text-end">
+                                    <strong class="text-primary">₹{{ "%.2f"|format(bill.total_amount or 0) }}</strong>
+                                    <br>
+                                    <small class="text-muted">{{ bill.timestamp[:10] if bill.timestamp else '-' }}</small>
+                                </div>
+                            </div>
+                        </a>
+                        {% endfor %}
+                    </div>
+                    <a href="{{ url_for('user_bills') }}" class="btn btn-sm btn-outline-primary mt-3">
+                        View All Bills
+                    </a>
+                    {% else %}
+                    <p class="text-muted text-center py-3">No bills yet</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <!-- Quick Actions -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="bi bi-lightning-charge"></i> Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <a href="{{ url_for('user_recharge') }}" class="btn btn-primary w-100 mb-2">
+                        <i class="bi bi-credit-card"></i> Recharge Wallet
+                    </a>
+                    <a href="{{ url_for('user_wallet') }}" class="btn btn-outline-primary w-100 mb-2">
+                        <i class="bi bi-wallet2"></i> View Wallet
+                    </a>
+                    <a href="{{ url_for('user_bills') }}" class="btn btn-outline-success w-100">
+                        <i class="bi bi-receipt"></i> My Bills
+                    </a>
+                </div>
+            </div>
+
+            <!-- Fuel Prices -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="bi bi-fuel-pump"></i> Current Fuel Prices</h5>
+                </div>
+                <div class="card-body">
+                    {% for fuel, price in fuel_prices.items() %}
+                    <div class="d-flex justify-content-between mb-2 pb-2 border-bottom">
+                        <span>{{ fuel }}</span>
+                        <strong class="text-primary">₹{{ "%.2f"|format(price) }}/L</strong>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+

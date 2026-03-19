@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}My Wallet{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="bi bi-wallet2"></i> My Wallet</h1>
+        <a href="{{ url_for('user_recharge') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Recharge
+        </a>
+    </div>
+
+    {% if user_info %}
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h6 class="text-muted mb-3">Wallet Information</h6>
+                    <table class="table table-borderless">
+                        <tr>
+                            <td><strong>Wallet ID:</strong></td>
+                            <td><code>{{ user_info.wallet_id }}</code></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Vehicle Plate:</strong></td>
+                            <td><code>{{ user_info.number_plate_id }}</code></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Fuel Type:</strong></td>
+                            <td>{{ user_info.fuel_type or 'N/A' }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Vehicle Type:</strong></td>
+                            <td>{{ user_info.vehicle_type or 'N/A' }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm bg-primary text-white">
+                <div class="card-body text-center">
+                    <h6 class="text-white-50 mb-3">Current Balance</h6>
+                    <h1 class="mb-0">₹{{ "%.2f"|format(user_info.balance|float) }}</h1>
+                    {% if user_info.balance|float < 100 %}
+                    <div class="alert alert-warning mt-3 mb-0">
+                        <i class="bi bi-exclamation-triangle"></i> Low balance! Please recharge.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white">
+            <h5 class="mb-0"><i class="bi bi-clock-history"></i> Transaction History</h5>
+        </div>
+        <div class="card-body">
+            <p class="text-muted">View your complete transaction history on the 
+                <a href="{{ url_for('user_transactions') }}">Transactions</a> page.
+            </p>
+        </div>
+    </div>
+    {% else %}
+    <div class="alert alert-warning">
+        <i class="bi bi-exclamation-triangle"></i> Wallet information not found.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+

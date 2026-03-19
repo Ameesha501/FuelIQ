@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Smart Fueling System</title>
+    <link rel="stylesheet" href="/static/static/css/style.css">
+    
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">
+            <span class="logo">FuelIQ</span>
+            <span class="tagline">Smart Fueling System</span>
+        </div>
+        <ul class="nav-links">
+            <li><a href="/" class="">Dashboard</a></li>
+            <li><a href="/scan" class="">Scan Vehicle</a></li>
+            <li><a href="/billing" class="">Billing</a></li>
+            
+            <li><a href="/transactions" class="">Transactions</a></li>
+        </ul>
+        <div class="nav-user">
+           <!-- 
+        </div>
+    </nav>
+
+    <main class="container">
+        
+<div class="dashboard">
+    <div class="welcome-section">
+        <h1>Welcome to FuelIQ</h1>
+        <p>Smart automatic fueling with number plate recognition</p>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">&#128663;</div>
+            <div class="stat-value">1</div>
+            <div class="stat-label">Registered Vehicles</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">&#128176;</div>
+            <div class="stat-value">&#8377;500.00</div>
+            <div class="stat-label">Total Balance</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">&#9981;</div>
+            <div class="stat-value">&#8377;0.00</div>
+            <div class="stat-label">Total Fuel Sales</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">&#128179;</div>
+            <div class="stat-value">1</div>
+            <div class="stat-label">Total Transactions</div>
+        </div>
+    </div>
+
+    <div class="quick-actions">
+        <h2>Quick Actions</h2>
+        <div class="action-grid">
+            <a href="/scan" class="action-card">
+                <div class="action-icon">&#128247;</div>
+                <h3>Scan Vehicle</h3>
+                <p>Detect number plate and process fueling</p>
+            </a>
+            <a href="/admin" class="action-card">
+                <div class="action-icon">&#128101;</div>
+                <h3>Manage Wallets</h3>
+                <p>Add, edit, or recharge vehicle wallets</p>
+            </a>
+            <a href="/transactions" class="action-card">
+                <div class="action-icon">&#128196;</div>
+                <h3>View History</h3>
+                <p>Check transaction history and reports</p>
+            </a>
+        </div>
+    </div>
+
+    <div class="fuel-prices">
+        <h2>Current Fuel Prices</h2>
+        <div class="price-grid">
+            
+            <div class="price-card">
+                <div class="fuel-type">Petrol</div>
+                <div class="fuel-price">&#8377;100.00/L</div>
+            </div>
+            
+            <div class="price-card">
+                <div class="fuel-type">Diesel</div>
+                <div class="fuel-price">&#8377;90.00/L</div>
+            </div>
+            
+            <div class="price-card">
+                <div class="fuel-type">CNG</div>
+                <div class="fuel-price">&#8377;60.00/L</div>
+            </div>
+            
+        </div>
+    </div>
+
+    <div class="how-it-works">
+        <h2>How FuelIQ Works</h2>
+        <div class="steps-grid">
+            <div class="step">
+                <div class="step-number">1</div>
+                <h4>Capture</h4>
+                <p>Camera captures the vehicle's number plate</p>
+            </div>
+            <div class="step">
+                <div class="step-number">2</div>
+                <h4>Detect</h4>
+                <p>OCR reads and validates the plate number</p>
+            </div>
+            <div class="step">
+                <div class="step-number">3</div>
+                <h4>Verify</h4>
+                <p>System checks prepaid wallet balance</p>
+            </div>
+            <div class="step">
+                <div class="step-number">4</div>
+                <h4>Fuel</h4>
+                <p>Automatic billing after fueling</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    </main>
+
+    <footer class="footer">
+        <p>FuelIQ - Reducing Billing Errors, Saving Time</p>
+    </footer>
+
+    <script src="/static/js/app.js"></script>
+    
+</body>
+</html>

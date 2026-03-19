@@ -1,0 +1,423 @@
+{% extends "base.html" %}
+{% block title %}Bill Generation{% endblock %}
+
+{% block extra_css %}
+<style>
+:root{--dk-bg:#0d0f18;--dk-surface:#161927;--dk-card:#1c1f2e;--dk-border:#272b3f;--dk-hover:#222640;--accent:#6c63ff;--accent-h:#5a52e0;--accent-glow:rgba(108,99,255,.18);--ok:#22c55e;--err:#ef4444;--warn:#f59e0b;--tx:#e2e8f0;--tm:#64748b;--td:#94a3b8}
+body{background:var(--dk-bg)!important;color:var(--tx)!important}
+.pg-title{font-size:1.5rem;font-weight:700}.pg-sub{color:var(--tm);font-size:.87rem}
+.dk-card{background:var(--dk-card);border:1px solid var(--dk-border);border-radius:14px;overflow:hidden;margin-bottom:1rem}
+.dk-head{background:var(--dk-surface);border-bottom:1px solid var(--dk-border);padding:.85rem 1.2rem;display:flex;align-items:center;gap:.5rem;font-weight:600;font-size:.92rem}
+.dk-head .dot{width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 6px var(--accent);flex-shrink:0}
+.dk-body{padding:1.25rem}
+.fl{font-size:.78rem;color:var(--tm);margin-bottom:.3rem;display:block}
+.di{background:var(--dk-bg)!important;border:1px solid var(--dk-border)!important;color:var(--tx)!important;border-radius:8px!important;padding:.55rem .85rem!important;font-size:.88rem!important;width:100%;transition:border-color .2s}
+.di:focus{border-color:var(--accent)!important;box-shadow:0 0 0 3px var(--accent-glow)!important;outline:none!important}
+.di[readonly]{color:var(--td)!important}
+.di.bal{color:var(--ok)!important;font-weight:700!important}
+.ds{background:var(--dk-bg)!important;border:1px solid var(--dk-border)!important;color:var(--tx)!important;border-radius:8px!important;padding:.55rem .85rem!important;font-size:.88rem!important;width:100%}
+.ds:focus{border-color:var(--accent)!important;box-shadow:0 0 0 3px var(--accent-glow)!important;outline:none!important}
+.ds option{background:var(--dk-surface)}
+.qty-wrap{display:flex;align-items:center;background:var(--dk-bg);border:1px solid var(--dk-border);border-radius:10px;overflow:hidden;height:50px}
+.qb{width:50px;height:50px;background:var(--dk-surface);border:none;color:var(--tx);font-size:1.3rem;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .2s;user-select:none}
+.qb:hover{background:var(--accent);color:#fff}
+#fuelQuantity{flex:1;background:transparent!important;border:none!important;border-left:1px solid var(--dk-border)!important;border-right:1px solid var(--dk-border)!important;color:var(--tx)!important;text-align:center;font-size:1.2rem!important;font-weight:700!important;height:50px;padding:0 .4rem!important;outline:none!important;box-shadow:none!important;-moz-appearance:textfield}
+#fuelQuantity::-webkit-outer-spin-button,#fuelQuantity::-webkit-inner-spin-button{-webkit-appearance:none}
+.qq-row{display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.65rem}
+.qq-btn{padding:.28rem .75rem;background:var(--dk-surface);border:1px solid var(--dk-border);border-radius:20px;color:var(--td);font-size:.79rem;cursor:pointer;transition:all .2s}
+.qq-btn:hover,.qq-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.calc-panel{background:var(--dk-surface);border:1px solid var(--dk-border);border-radius:10px;padding:1.1rem;margin:1.2rem 0}
+.calc-label{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--tm);font-weight:600;margin-bottom:.8rem}
+.sub-btn{width:100%;padding:.82rem;background:var(--accent);border:none;border-radius:10px;color:#fff;font-size:.95rem;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.5rem;transition:background .2s,box-shadow .2s;margin-top:.7rem}
+.sub-btn:hover{background:var(--accent-h);box-shadow:0 4px 20px var(--accent-glow)}
+.sub-btn:disabled{opacity:.5;cursor:not-allowed}
+.sum-row{display:flex;justify-content:space-between;align-items:center;padding:.5rem 0;border-bottom:1px solid var(--dk-border);font-size:.87rem}
+.sum-row:last-child{border-bottom:none}
+.sl{color:var(--tm)}.sv{font-weight:600}
+.sum-total{display:flex;justify-content:space-between;align-items:center;padding:.85rem 0 0;margin-top:.4rem;border-top:1px solid var(--dk-border)}
+.sum-total .sl{font-size:.95rem;font-weight:700}.sum-total .sv{font-size:1.2rem;font-weight:800;color:var(--accent)}
+.ins-list{list-style:none;padding:0;margin:0;counter-reset:s}
+.ins-list li{padding:.35rem 0;font-size:.81rem;color:var(--td);display:flex;gap:.5rem;align-items:flex-start;counter-increment:s}
+.ins-list li::before{content:counter(s);background:var(--accent);color:#fff;width:17px;height:17px;border-radius:50%;font-size:.68rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+/* lookup bar */
+.lookup-bar{display:flex;gap:.5rem;margin-bottom:1rem}
+.lookup-bar input{flex:1}
+.lookup-bar button{white-space:nowrap;padding:.55rem 1rem;background:var(--dk-surface);border:1px solid var(--dk-border);border-radius:8px;color:var(--tx);cursor:pointer;font-size:.87rem;transition:background .2s}
+.lookup-bar button:hover{background:var(--accent);border-color:var(--accent);color:#fff}
+/* status badge */
+.plate-status{display:inline-flex;align-items:center;gap:.35rem;font-size:.78rem;padding:.25rem .65rem;border-radius:20px;margin-top:.4rem}
+.plate-status.ok{background:rgba(34,197,94,.15);color:var(--ok)}
+.plate-status.warn{background:rgba(245,158,11,.15);color:var(--warn)}
+.plate-status.err{background:rgba(239,68,68,.15);color:var(--err)}
+/* modal */
+.dk-modal .modal-content{background:var(--dk-card);border:1px solid var(--dk-border);color:var(--tx)}
+.dk-modal .modal-header,.dk-modal .modal-footer{background:var(--dk-surface);border-color:var(--dk-border)}
+.dk-modal .btn-close{filter:invert(1)}
+.md-row{display:flex;justify-content:space-between;padding:.5rem 0;border-bottom:1px solid var(--dk-border);font-size:.87rem}
+.md-row:last-child{border-bottom:none}
+.md-l{color:var(--tm)}.md-v{font-weight:600}
+.ok-icon{width:50px;height:50px;background:rgba(34,197,94,.15);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto .85rem;font-size:1.35rem;color:var(--ok)}
+.btn-sec{background:var(--dk-surface);border:1px solid var(--dk-border);color:var(--tx);border-radius:8px;padding:.42rem 1rem;cursor:pointer;font-size:.87rem;transition:background .2s}
+.btn-sec:hover{background:var(--dk-hover)}
+.btn-acc{background:var(--accent);border:none;color:#fff;border-radius:8px;padding:.42rem 1rem;cursor:pointer;font-size:.87rem;transition:background .2s}
+.btn-acc:hover{background:var(--accent-h)}
+.btn-pdf{background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:#fca5a5;border-radius:8px;padding:.42rem 1rem;cursor:pointer;font-size:.87rem;transition:background .2s;text-decoration:none;display:inline-flex;align-items:center;gap:.35rem}
+.btn-pdf:hover{background:rgba(239,68,68,.25);color:#fca5a5}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-3 px-md-4 py-3">
+  <div class="mb-4">
+    <div class="pg-title"><i class="bi bi-receipt me-2"></i>Bill Generation</div>
+    <div class="pg-sub">Enter fuel quantity — all other details are auto-filled</div>
+  </div>
+
+  <div class="row g-3">
+    <!-- LEFT -->
+    <div class="col-lg-8">
+
+      <!-- Manual plate lookup (fallback when auto-detect fails) -->
+      <div class="dk-card">
+        <div class="dk-head"><span class="dot"></span>Vehicle Lookup</div>
+        <div class="dk-body">
+          <div class="lookup-bar">
+            <input class="di" id="manualPlate" placeholder="Enter plate manually (e.g. DL3CAB1234)"
+                   value="{{ vehicle_info.number_plate_id or '' }}"
+                   style="text-transform:uppercase">
+            <button type="button" id="lookupBtn">
+              <i class="bi bi-search me-1"></i>Lookup
+            </button>
+          </div>
+          <div id="plateStatus"></div>
+        </div>
+      </div>
+
+      <!-- Vehicle info (auto-filled) -->
+      <div class="dk-card">
+        <div class="dk-head"><span class="dot"></span>Vehicle Information</div>
+        <div class="dk-body">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="fl">Number Plate</label>
+              <input class="di" id="vehiclePlate" readonly
+                     value="{{ vehicle_info.number_plate_id or 'Not detected' }}">
+            </div>
+            <div class="col-md-6">
+              <label class="fl">Wallet ID</label>
+              <input class="di" id="walletId" readonly
+                     value="{{ vehicle_info.wallet_id or 'Not detected' }}">
+            </div>
+            <div class="col-md-6">
+              <label class="fl">Current Balance</label>
+              <input class="di bal" id="currentBalance" readonly
+                     value="₹{{ '%.2f'|format(vehicle_info.balance or 0) }}">
+            </div>
+            <div class="col-md-6">
+              <label class="fl">Date &amp; Time</label>
+              <input class="di" id="billDateTime" readonly value="">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bill form -->
+      <div class="dk-card">
+        <div class="dk-head"><span class="dot"></span>Bill Details</div>
+        <div class="dk-body">
+          <form id="billForm">
+            <div class="row g-3 mb-3">
+              <div class="col-md-6">
+                <label class="fl">Fuel Type <span style="color:var(--err)">*</span></label>
+                <select class="ds" id="fuelType" required>
+                  <option value="">Select Fuel Type</option>
+                  {% for fuel, price in fuel_prices.items() %}
+                  <option value="{{ fuel }}" data-price="{{ price }}"
+                          {% if vehicle_info.fuel_type == fuel %}selected{% endif %}>
+                    {{ fuel }} — ₹{{ "%.2f"|format(price) }}/L
+                  </option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="fl">Price per Liter</label>
+                <input class="di" id="fuelPrice" readonly value="₹0.00">
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="fl" style="font-size:.85rem;font-weight:600;color:var(--tx)">
+                Fuel Quantity (Liters) <span style="color:var(--err)">*</span>
+              </label>
+              <div class="qty-wrap">
+                <button class="qb" type="button" id="decreaseQty"><i class="bi bi-dash"></i></button>
+                <input type="number" id="fuelQuantity" min="0" step="1" value="0" required autocomplete="off">
+                <button class="qb" type="button" id="increaseQty"><i class="bi bi-plus"></i></button>
+              </div>
+              <div class="qq-row">
+                <button type="button" class="qq-btn" data-qty="5">5 L</button>
+                <button type="button" class="qq-btn" data-qty="10">10 L</button>
+                <button type="button" class="qq-btn" data-qty="20">20 L</button>
+                <button type="button" class="qq-btn" data-qty="30">30 L</button>
+                <button type="button" class="qq-btn" data-qty="50">50 L</button>
+              </div>
+            </div>
+
+            <div class="calc-panel">
+              <div class="calc-label"><i class="bi bi-calculator me-1"></i>Auto-Calculated</div>
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="fl">Total Amount</label>
+                  <input class="di" id="totalAmount" readonly value="₹0.00"
+                         style="color:var(--accent);font-weight:700">
+                </div>
+                <div class="col-md-6">
+                  <label class="fl">Balance After</label>
+                  <input class="di" id="balanceAfter" readonly
+                         value="₹{{ '%.2f'|format(vehicle_info.balance or 0) }}"
+                         style="color:var(--ok);font-weight:700">
+                </div>
+              </div>
+            </div>
+
+            <button type="submit" class="sub-btn" id="submitBtn">
+              <i class="bi bi-check-circle-fill"></i>
+              Generate Bill &amp; Deduct from Wallet
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="col-lg-4">
+      <div class="dk-card" style="position:sticky;top:20px">
+        <div class="dk-head"><span class="dot"></span>Bill Summary</div>
+        <div class="dk-body">
+          <div class="sum-row"><span class="sl">Fuel Type</span><span class="sv" id="summaryFuelType">—</span></div>
+          <div class="sum-row"><span class="sl">Quantity</span><span class="sv" id="summaryQuantity">0 L</span></div>
+          <div class="sum-row"><span class="sl">Rate</span><span class="sv" id="summaryRate">₹0.00/L</span></div>
+          <div class="sum-row"><span class="sl">Subtotal</span><span class="sv" id="summarySubtotal">₹0.00</span></div>
+          <div class="sum-row"><span class="sl">Tax</span><span class="sv">₹0.00</span></div>
+          <div class="sum-total">
+            <span class="sl">Total</span>
+            <span class="sv" id="summaryTotal">₹0.00</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="dk-card mt-0">
+        <div class="dk-head"><i class="bi bi-info-circle me-1" style="color:var(--warn)"></i>Instructions</div>
+        <div class="dk-body">
+          <ul class="ins-list">
+            <li>Detect vehicle via Live Detection or Upload</li>
+            <li>Or enter plate manually and click Lookup</li>
+            <li>Select fuel type and enter quantity</li>
+            <li>Click Generate Bill to process payment</li>
+            <li>Download PDF receipt from the success dialog</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Success Modal -->
+<div class="modal fade dk-modal" id="successModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0 pb-0">
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body pt-1 pb-3 px-4">
+        <div class="ok-icon"><i class="bi bi-check-lg"></i></div>
+        <h5 class="text-center mb-3" style="color:var(--ok)">Bill Generated</h5>
+        <div class="md-row"><span class="md-l">Bill ID</span><span class="md-v" id="modalBillId"></span></div>
+        <div class="md-row"><span class="md-l">Vehicle</span><span class="md-v" id="modalPlate"></span></div>
+        <div class="md-row"><span class="md-l">Fuel</span><span class="md-v" id="modalFuel"></span></div>
+        <div class="md-row"><span class="md-l">Total Amount</span><span class="md-v" style="color:var(--accent)" id="modalTotal"></span></div>
+        <div class="md-row"><span class="md-l">New Balance</span><span class="md-v" style="color:var(--ok)" id="modalBalance"></span></div>
+        <div class="md-row"><span class="md-l">Email</span><span class="md-v" id="modalEmail" style="font-size:.82rem"></span></div>
+      </div>
+      <div class="modal-footer border-0 pt-0 justify-content-center gap-2 flex-wrap">
+        <button class="btn-sec" data-bs-dismiss="modal">Close</button>
+        <a class="btn-pdf" id="downloadPdfBtn" href="#" target="_blank">
+          <i class="bi bi-file-earmark-pdf"></i>Download PDF
+        </a>
+        <button class="btn-acc" onclick="window.location.reload()">New Bill</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const selFuel   = document.getElementById('fuelType');
+    const inpPrice  = document.getElementById('fuelPrice');
+    const inpQty    = document.getElementById('fuelQuantity');
+    const inpTotal  = document.getElementById('totalAmount');
+    const inpBefore = document.getElementById('currentBalance');
+    const inpAfter  = document.getElementById('balanceAfter');
+    const form      = document.getElementById('billForm');
+    const submitBtn = document.getElementById('submitBtn');
+
+    // live clock
+    (function tick(){
+        const n = new Date();
+        document.getElementById('billDateTime').value =
+            n.toLocaleDateString('en-GB') + '  ' + n.toLocaleTimeString('en-GB');
+        setTimeout(tick, 1000);
+    })();
+
+    // ── Manual plate lookup ──────────────────────────────────────────
+    document.getElementById('lookupBtn').addEventListener('click', async function(){
+        const plate = document.getElementById('manualPlate').value.trim().toUpperCase();
+        if (!plate) return showStatus('err', 'Enter a plate number first');
+        showStatus('warn', '<span class="spinner-border spinner-border-sm me-1"></span>Looking up…');
+        try {
+            const res  = await fetch('/api/lookup-plate', {
+                method: 'POST',
+                headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({plate})
+            });
+            const data = await res.json();
+            if (res.ok && data.success) {
+                const r = data.record;
+                document.getElementById('vehiclePlate').value  = r.number_plate_id;
+                document.getElementById('walletId').value      = r.wallet_id;
+                inpBefore.value = '₹' + parseFloat(r.balance).toFixed(2);
+                inpAfter.value  = inpBefore.value;
+                // pre-select fuel type
+                for (let opt of selFuel.options) {
+                    if (opt.value === r.fuel_type) { opt.selected = true; break; }
+                }
+                selFuel.dispatchEvent(new Event('change'));
+                showStatus('ok', '<i class="bi bi-check-circle me-1"></i>Vehicle found — ' + r.number_plate_id);
+                refresh();
+            } else {
+                showStatus('err', '<i class="bi bi-x-circle me-1"></i>' + (data.error || 'Not found'));
+            }
+        } catch(e) {
+            showStatus('err', 'Network error');
+        }
+    });
+
+    // also trigger lookup on Enter key in the plate input
+    document.getElementById('manualPlate').addEventListener('keydown', function(e){
+        if (e.key === 'Enter') { e.preventDefault(); document.getElementById('lookupBtn').click(); }
+    });
+
+    function showStatus(type, html){
+        const el = document.getElementById('plateStatus');
+        el.innerHTML = `<span class="plate-status ${type}">${html}</span>`;
+    }
+
+    // ── Quantity helpers ─────────────────────────────────────────────
+    function getQty(){ return Math.max(0, parseInt(inpQty.value, 10) || 0); }
+    function setQty(v){ inpQty.value = Math.max(0, v); refresh(); }
+
+    document.getElementById('increaseQty').addEventListener('click', function(e){ e.preventDefault(); setQty(getQty()+1); });
+    document.getElementById('decreaseQty').addEventListener('click', function(e){ e.preventDefault(); setQty(getQty()-1); });
+
+    document.querySelectorAll('.qq-btn').forEach(function(b){
+        b.addEventListener('click', function(){
+            document.querySelectorAll('.qq-btn').forEach(x=>x.classList.remove('active'));
+            this.classList.add('active');
+            setQty(parseInt(this.dataset.qty,10));
+        });
+    });
+
+    inpQty.addEventListener('input', refresh);
+
+    selFuel.addEventListener('change', function(){
+        const opt = this.options[this.selectedIndex];
+        inpPrice.value = '₹' + (parseFloat(opt.dataset.price)||0).toFixed(2);
+        refresh();
+    });
+
+    // ── Recalculate ──────────────────────────────────────────────────
+    function refresh(){
+        const qty  = getQty();
+        const opt  = selFuel.options[selFuel.selectedIndex];
+        const rate = parseFloat(opt && opt.dataset.price) || 0;
+        const tot  = qty * rate;
+
+        inpTotal.value = '₹' + tot.toFixed(2);
+
+        const before = parseFloat(inpBefore.value.replace(/[₹,]/g,'')) || 0;
+        const after  = before - tot;
+        inpAfter.value = '₹' + after.toFixed(2);
+        inpAfter.style.color = after < 0 ? 'var(--err)' : 'var(--ok)';
+
+        document.getElementById('summaryFuelType').textContent  = (opt && opt.value) || '—';
+        document.getElementById('summaryQuantity').textContent  = qty + ' L';
+        document.getElementById('summaryRate').textContent      = '₹' + rate.toFixed(2) + '/L';
+        document.getElementById('summarySubtotal').textContent  = '₹' + tot.toFixed(2);
+        document.getElementById('summaryTotal').textContent     = '₹' + tot.toFixed(2);
+    }
+
+    // ── Submit ───────────────────────────────────────────────────────
+    form.addEventListener('submit', async function(e){
+        e.preventDefault();
+        const plate  = document.getElementById('vehiclePlate').value.trim();
+        const wid    = document.getElementById('walletId').value.trim();
+        const fuel   = selFuel.value;
+        const qty    = getQty();
+
+        if (!plate || plate === 'Not detected')
+            return alert('Please detect a vehicle or use the Lookup above.');
+        if (!fuel)
+            return alert('Please select a fuel type.');
+        if (qty <= 0)
+            return alert('Please enter a valid fuel quantity (> 0).');
+
+        const before = parseFloat(inpBefore.value.replace(/[₹,]/g,'')) || 0;
+        const tot    = parseFloat(inpTotal.value.replace(/[₹,]/g,''))  || 0;
+        if (before < tot)
+            return alert('Insufficient balance! Current: ₹' + before.toFixed(2));
+
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing…';
+
+        try {
+            const res  = await fetch('/api/generate-bill', {
+                method: 'POST',
+                headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({number_plate_id:plate, wallet_id:wid, fuel_type:fuel, liters:qty})
+            });
+            const data = await res.json();
+
+            if (res.status === 401) {
+                alert('Session expired. Please refresh the page and log in again.');
+                return;
+            }
+            if (res.ok && data.status === 'success') {
+                const b = data.bill;
+                document.getElementById('modalBillId').textContent  = data.bill_id || '—';
+                document.getElementById('modalPlate').textContent   = b.number_plate_id || '—';
+                document.getElementById('modalFuel').textContent    = (b.fuel_type || '—') + ' × ' + parseFloat(b.liters||0).toFixed(1) + ' L';
+                document.getElementById('modalTotal').textContent   = '₹' + parseFloat(b.total_amount||0).toFixed(2);
+                document.getElementById('modalBalance').textContent = '₹' + parseFloat(b.balance_after||0).toFixed(2);
+                document.getElementById('modalEmail').textContent   = b.email_status === 'sending'
+                    ? '📧 Sending…' : (b.email_status === 'no_email' ? 'No email on file' : '✓ Sent');
+                document.getElementById('downloadPdfBtn').href = '/download-bill/' + data.bill_id;
+                new bootstrap.Modal(document.getElementById('successModal')).show();
+            } else {
+                alert('Error: ' + (data.error || 'Failed to generate bill'));
+            }
+        } catch(err) {
+            alert('Network error. Please try again.');
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="bi bi-check-circle-fill"></i> Generate Bill & Deduct from Wallet';
+        }
+    });
+
+    // init
+    if (selFuel.value) selFuel.dispatchEvent(new Event('change'));
+    refresh();
+});
+</script>
+{% endblock %}

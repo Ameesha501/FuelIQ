@@ -1,0 +1,2 @@
+number_plate_id,wallet_id,balance,last_recharge_amount,last_recharge_date,total_transactions,fuel_type,vehicle_type
+DL3CAB1234,W123,500.0,500.0,2025-12-12,1,Petrol,Car

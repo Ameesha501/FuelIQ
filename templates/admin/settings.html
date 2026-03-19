@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block title %}System Settings{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="mb-4"><i class="bi bi-gear"></i> System Settings</h1>
+    
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-fuel-pump"></i> Fuel Prices</h5>
+                </div>
+                <div class="card-body">
+                    <form id="fuelPricesForm">
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label class="form-label"><strong>Petrol Price (₹/L)</strong></label>
+                                <input type="number" class="form-control" id="petrolPrice" 
+                                       value="{{ fuel_prices.Petrol }}" step="0.01" min="0" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label"><strong>Diesel Price (₹/L)</strong></label>
+                                <input type="number" class="form-control" id="dieselPrice" 
+                                       value="{{ fuel_prices.Diesel }}" step="0.01" min="0" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label"><strong>CNG Price (₹/L)</strong></label>
+                                <input type="number" class="form-control" id="cngPrice" 
+                                       value="{{ fuel_prices.CNG }}" step="0.01" min="0" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save"></i> Save Prices
+                        </button>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="bi bi-info-circle"></i> System Information</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>FuelIQ Version:</strong> 1.0.0</p>
+                    <p><strong>Detection Model:</strong> YOLOv8</p>
+                    <p><strong>OCR Engine:</strong> EasyOCR</p>
+                    <p><strong>Last Updated:</strong> <span id="lastUpdated"></span></p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-warning text-dark">
+                    <h6 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Important Notes</h6>
+                </div>
+                <div class="card-body">
+                    <ul class="small mb-0">
+                        <li>Fuel prices are used for all bill calculations</li>
+                        <li>Changes take effect immediately</li>
+                        <li>Prices are applied to new transactions only</li>
+                        <li>Historical bills retain original prices</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Set last updated date
+document.getElementById('lastUpdated').textContent = new Date().toLocaleDateString('en-GB');
+
+document.getElementById('fuelPricesForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const data = {
+        petrol: parseFloat(document.getElementById('petrolPrice').value),
+        diesel: parseFloat(document.getElementById('dieselPrice').value),
+        cng: parseFloat(document.getElementById('cngPrice').value)
+    };
+    
+    try {
+        const response = await fetch('/api/update-fuel-prices', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok) {
+            alert('Fuel prices updated successfully!');
+            window.location.reload();
+        } else {
+            alert('Error updating prices');
+        }
+    } catch (error) {
+        alert('Error updating prices');
+    }
+});
+</script>
+{% endblock %}
+

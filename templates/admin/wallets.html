@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block title %}Wallet Management{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="bi bi-wallet2"></i> Wallet Management</h1>
+        <input type="text" class="form-control" id="searchInput" placeholder="Search wallets..." style="max-width: 300px;">
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Wallet ID</th>
+                            <th>Vehicle Plate</th>
+                            <th>Balance</th>
+                            <th>Fuel Type</th>
+                            <th>Vehicle Type</th>
+                            <th>Last Recharge</th>
+                            <th>Total Transactions</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="walletsTable">
+                        {% if wallets %}
+                            {% for w in wallets %}
+                            <tr>
+                                <td><code class="fw-bold">{{ w.wallet_id }}</code></td>
+                                <td><code>{{ w.number_plate_id }}</code></td>
+                                <td class="fw-bold {% if w.balance|float < 100 %}text-danger{% else %}text-success{% endif %}">
+                                    ₹{{ "%.2f"|format(w.balance|float) }}
+                                </td>
+                                <td>{{ w.fuel_type or '-' }}</td>
+                                <td>{{ w.vehicle_type or '-' }}</td>
+                                <td>
+                                    {% if w.last_recharge_date %}
+                                    {{ w.last_recharge_date }}
+                                    {% else %}
+                                    <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ w.total_transactions or 0 }}</td>
+                                <td>
+                                    <button class="btn btn-sm btn-info" onclick="viewWallet('{{ w.wallet_id }}')">
+                                        <i class="bi bi-eye"></i> View
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="8" class="text-center text-muted py-5">
+                                    <i class="bi bi-wallet2" style="font-size: 3rem;"></i>
+                                    <p class="mt-3">No wallets found</p>
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Wallet Info Modal -->
+<div class="modal fade" id="walletModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Wallet Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="walletModalBody">
+                Loading...
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('searchInput').addEventListener('input', function() {
+    const searchTerm = this.value.toLowerCase();
+    const rows = document.querySelectorAll('#walletsTable tr');
+    
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(searchTerm) ? '' : 'none';
+    });
+});
+
+async function viewWallet(walletId) {
+    try {
+        const response = await fetch(`/api/wallet-info/${walletId}`);
+        const data = await response.json();
+        
+        if (response.ok) {
+            document.getElementById('walletModalBody').innerHTML = `
+                <p><strong>Wallet ID:</strong> <code>${data.wallet_id}</code></p>
+                <p><strong>Vehicle Plate:</strong> <code>${data.number_plate_id}</code></p>
+                <p><strong>Balance:</strong> ₹${parseFloat(data.balance).toFixed(2)}</p>
+                <p><strong>Fuel Type:</strong> ${data.fuel_type || '-'}</p>
+                <p><strong>Vehicle Type:</strong> ${data.vehicle_type || '-'}</p>
+                <p><strong>Last Recharge:</strong> ${data.last_recharge_date || '-'}</p>
+                <p><strong>Total Transactions:</strong> ${data.total_transactions || 0}</p>
+            `;
+            new bootstrap.Modal(document.getElementById('walletModal')).show();
+        } else {
+            alert('Error: ' + data.error);
+        }
+    } catch (error) {
+        alert('Error loading wallet info');
+    }
+}
+</script>
+{% endblock %}
+
+

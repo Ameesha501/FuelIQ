@@ -1,0 +1,370 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block extra_css %}
+<link href="{{ url_for('static', filename='css/chart.js.min.css') }}" rel="stylesheet">
+<style>
+    .dashboard-card {
+        background: linear-gradient(135deg, #b3b9d6 0%, #9c71c7 100%);
+        border: none;
+        border-radius: 15px;
+        color: white;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+    .dashboard-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+    }
+    .dashboard-card.success {
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    }
+    .dashboard-card.warning {
+        background: linear-gradient(135deg, #846a86 0%, #d4a5ac 100%);
+    }
+    .dashboard-card.info {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    }
+    .stat-icon {
+        font-size: 3rem;
+        opacity: 0.8;
+    }
+    .stat-value {
+        font-size: 2.5rem;
+        font-weight: bold;
+        margin: 0;
+    }
+    .stat-label {
+        font-size: 0.9rem;
+        opacity: 0.9;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    .insight-card {
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+        border: none;
+    }
+    .insight-card:hover {
+        box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        transform: translateY(-3px);
+    }
+    .chart-container {
+        position: relative;
+        height: 300px;
+        padding: 20px;
+    }
+    .quick-action-card {
+        border-radius: 12px;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+    }
+    .quick-action-card:hover {
+        border-color: #2563eb;
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(37, 99, 235, 0.2);
+    }
+    .action-icon {
+        font-size: 3.5rem;
+        margin-bottom: 1rem;
+    }
+    .trend-up {
+        color: #10b981;
+    }
+    .trend-down {
+        color: #ef4444;
+    }
+    .metric-badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        margin-left: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="mb-1"><i class="bi bi-speedometer2"></i> Admin Dashboard</h1>
+            <p class="text-muted mb-0">Welcome back! Here's what's happening today.</p>
+        </div>
+        <span class="badge bg-primary px-3 py-2" style="font-size: 1rem;">
+            <i class="bi bi-shield-check"></i> Station Operator
+        </span>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-3 col-md-6">
+            <div class="card dashboard-card">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="stat-label mb-2">Total Wallets</p>
+                            <h2 class="stat-value mb-0">{{ stats.total_wallets }}</h2>
+                        </div>
+                        <div class="stat-icon">
+                            <i class="bi bi-wallet2"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="card dashboard-card success">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="stat-label mb-2">Total Balance</p>
+                            <h2 class="stat-value mb-0">₹{{ "%.0f"|format(stats.total_balance) }}</h2>
+                        </div>
+                        <div class="stat-icon">
+                            <i class="bi bi-currency-rupee"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="card dashboard-card warning">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="stat-label mb-2">Today's Sales</p>
+                            <h2 class="stat-value mb-0">₹{{ "%.0f"|format(stats.today_sales) }}</h2>
+                            <span class="metric-badge bg-white bg-opacity-20">
+                                {{ stats.today_transactions }} transactions
+                            </span>
+                        </div>
+                        <div class="stat-icon">
+                            <i class="bi bi-graph-up-arrow"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="card dashboard-card info">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="stat-label mb-2">Weekly Sales</p>
+                            <h2 class="stat-value mb-0">₹{{ "%.0f"|format(stats.weekly_sales) }}</h2>
+                            <span class="metric-badge bg-white bg-opacity-20">
+                                {{ stats.weekly_transactions }} transactions
+                            </span>
+                        </div>
+                        <div class="stat-icon">
+                            <i class="bi bi-calendar-week"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Transaction Insights -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-8">
+            <div class="card insight-card">
+                <div class="card-header bg-white border-0 pb-0">
+                    <h5 class="mb-0"><i class="bi bi-bar-chart"></i> Daily Sales (Last 7 Days)</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="dailyChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card insight-card">
+                <div class="card-header bg-white border-0 pb-0">
+                    <h5 class="mb-0"><i class="bi bi-pie-chart"></i> Weekly Overview</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="weeklyChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card insight-card">
+                <div class="card-header bg-white border-0">
+                    <h5 class="mb-0"><i class="bi bi-lightning-charge"></i> Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <a href="{{ url_for('admin_detect') }}" class="card quick-action-card text-decoration-none h-100">
+                                <div class="card-body text-center p-4">
+                                    <i class="bi bi-camera-video text-primary action-icon"></i>
+                                    <h5 class="mt-2">Live Detection</h5>
+                                    <p class="text-muted mb-0 small">Detect vehicle in real-time</p>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-6">
+                            <a href="{{ url_for('admin_upload') }}" class="card quick-action-card text-decoration-none h-100">
+                                <div class="card-body text-center p-4">
+                                    <i class="bi bi-upload text-success action-icon"></i>
+                                    <h5 class="mt-2">Upload & Verify</h5>
+                                    <p class="text-muted mb-0 small">Upload vehicle image</p>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-6">
+                            <a href="{{ url_for('bill_generation') }}" class="card quick-action-card text-decoration-none h-100">
+                                <div class="card-body text-center p-4">
+                                    <i class="bi bi-receipt text-warning action-icon"></i>
+                                    <h5 class="mt-2">Generate Bill</h5>
+                                    <p class="text-muted mb-0 small">Create fuel bill</p>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-6">
+                            <a href="{{ url_for('admin_wallets') }}" class="card quick-action-card text-decoration-none h-100">
+                                <div class="card-body text-center p-4">
+                                    <i class="bi bi-wallet2 text-info action-icon"></i>
+                                    <h5 class="mt-2">Manage Wallets</h5>
+                                    <p class="text-muted mb-0 small">View all wallets</p>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card insight-card">
+                <div class="card-header bg-white border-0">
+                    <h5 class="mb-0"><i class="bi bi-fuel-pump"></i> Fuel Prices</h5>
+                </div>
+                <div class="card-body">
+                    {% for fuel, price in fuel_prices.items() %}
+                    <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
+                        <span class="fw-bold">{{ fuel }}</span>
+                        <span class="text-primary fw-bold fs-5">₹{{ "%.2f"|format(price) }}/L</span>
+                    </div>
+                    {% endfor %}
+                    <a href="{{ url_for('admin_settings') }}" class="btn btn-primary w-100 mt-3">
+                        <i class="bi bi-gear"></i> Update Prices
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+    // Daily Sales Chart
+    const dailyData = {{ stats.daily_data|tojson }};
+    const dailyCtx = document.getElementById('dailyChart').getContext('2d');
+    new Chart(dailyCtx, {
+        type: 'line',
+        data: {
+            labels: dailyData.map(d => d.day),
+            datasets: [{
+                label: 'Sales (₹)',
+                data: dailyData.map(d => d.sales),
+                borderColor: 'rgb(37, 99, 235)',
+                backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                tension: 0.4,
+                fill: true
+            }, {
+                label: 'Transactions',
+                data: dailyData.map(d => d.transactions),
+                borderColor: 'rgb(16, 185, 129)',
+                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                tension: 0.4,
+                fill: true,
+                yAxisID: 'y1'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Sales (₹)'
+                    }
+                },
+                y1: {
+                    type: 'linear',
+                    display: true,
+                    position: 'right',
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Transactions'
+                    },
+                    grid: {
+                        drawOnChartArea: false
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top'
+                }
+            }
+        }
+    });
+
+    // Weekly Chart
+    const weeklyData = {{ stats.weekly_data|tojson }};
+    const weeklyCtx = document.getElementById('weeklyChart').getContext('2d');
+    new Chart(weeklyCtx, {
+        type: 'doughnut',
+        data: {
+            labels: weeklyData.map(w => w.week),
+            datasets: [{
+                data: weeklyData.map(w => w.sales),
+                backgroundColor: [
+                    'rgba(37, 99, 235, 0.8)',
+                    'rgba(16, 185, 129, 0.8)',
+                    'rgba(251, 191, 36, 0.8)',
+                    'rgba(239, 68, 68, 0.8)'
+                ],
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.label + ': ₹' + context.parsed.toFixed(0);
+                        }
+                    }
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
