@@ -131,3 +131,81 @@ def read_plate_text_from_image(cv_img) -> str:
 
     # Otherwise return the longest candidate (more chars = more info)
     return max(candidates, key=len)
+
+
+# ── Fake / suspicious plate detection ─────────────────────────────────────────
+
+# Valid Indian state codes (RTO prefix)
+_VALID_STATE_CODES = {
+    'AN','AP','AR','AS','BR','CG','CH','DD','DL','DN','GA','GJ','HP',
+    'HR','JH','JK','KA','KL','LA','LD','MH','ML','MN','MP','MZ','NL',
+    'OD','PB','PY','RJ','SK','TN','TR','TS','UK','UP','WB'
+}
+
+def check_plate_authenticity(plate: str) -> dict:
+    """
+    Analyse a plate string for signs of being fake/suspicious.
+
+    Returns a dict:
+      {
+        'is_suspicious': bool,
+        'confidence':    float,   # 0.0 = clean, 1.0 = definitely fake
+        'reasons':       list[str]
+      }
+    """
+    reasons = []
+    score   = 0.0
+
+    if not plate:
+        return {'is_suspicious': False, 'confidence': 0.0, 'reasons': []}
+
+    p = plate.upper().strip()
+
+    # 1. Must match a known Indian plate pattern
+    if not _is_valid_plate(p):
+        reasons.append('Does not match any valid Indian plate format')
+        score += 0.5
+
+    # 2. State code check
+    state = p[:2] if len(p) >= 2 else ''
+    if state and state not in _VALID_STATE_CODES:
+        reasons.append(f'Unknown state code: {state}')
+        score += 0.4
+
+    # 3. Repeated characters (e.g. AAAA1111, 0000) — common in fake plates
+    digits = ''.join(c for c in p if c.isdigit())
+    alpha  = ''.join(c for c in p if c.isalpha())
+    if len(digits) >= 4 and len(set(digits[-4:])) == 1:
+        reasons.append('Last 4 digits are all identical — suspicious pattern')
+        score += 0.35
+    if len(alpha) >= 4 and len(set(alpha)) == 1:
+        reasons.append('All letters are identical — suspicious pattern')
+        score += 0.3
+
+    # 4. Too short or too long
+    if len(p) < 6:
+        reasons.append(f'Plate too short ({len(p)} chars)')
+        score += 0.3
+    if len(p) > 13:
+        reasons.append(f'Plate too long ({len(p)} chars)')
+        score += 0.2
+
+    # 5. Contains only numbers or only letters (no mix)
+    if p.isdigit():
+        reasons.append('Plate contains only digits')
+        score += 0.5
+    if p.isalpha():
+        reasons.append('Plate contains only letters')
+        score += 0.5
+
+    # 6. Sequential digits like 1234, 0000, 9999
+    if digits.endswith('1234') or digits.endswith('0000') or digits.endswith('9999'):
+        reasons.append('Sequential or trivial digit pattern detected')
+        score += 0.2
+
+    confidence = min(round(score, 2), 1.0)
+    return {
+        'is_suspicious': confidence >= 0.4,
+        'confidence':    confidence,
+        'reasons':       reasons
+    }

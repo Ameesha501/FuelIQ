@@ -10,7 +10,7 @@ from email import encoders
 SMTP_SERVER    = os.environ.get('SMTP_SERVER', 'smtp.gmail.com')
 SMTP_PORT      = int(os.environ.get('SMTP_PORT', '587'))
 EMAIL_USER     = os.environ.get('EMAIL_USER', 'bangeraameesha501@gmail.com')
-EMAIL_PASSWORD = os.environ.get('EMAIL_PASSWORD', '')
+EMAIL_PASSWORD = os.environ.get('EMAIL_PASSWORD', 'erptribsbqfutxhf')
 FROM_EMAIL     = os.environ.get('FROM_EMAIL', 'bangeraameesha501@gmail.com')
 
 
@@ -228,7 +228,7 @@ def send_bill_email(bill_data: dict, recipient_email: str) -> bool:
         return True   # demo mode: pretend success
 
     try:
-        with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
+        with smtplib.SMTP(SMTP_SERVER, SMTP_PORT, timeout=10) as server:
             server.starttls()
             server.login(EMAIL_USER, EMAIL_PASSWORD)
             server.sendmail(FROM_EMAIL, recipient_email, msg.as_string())

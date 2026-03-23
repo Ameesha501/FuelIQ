@@ -632,6 +632,12 @@ def api_detect():
         except Exception as e:
             print(f"OCR error: {e}")
             plate = ""
+
+        # Fake plate check
+        plate_alert = {}
+        if plate:
+            from utils.ocr import check_plate_authenticity
+            plate_alert = check_plate_authenticity(plate)
         
         # Wallet lookup (exact, then fuzzy fallback)
         record = None
@@ -682,7 +688,8 @@ def api_detect():
             "detections": len(boxes),
             "confidence": boxes[0][4] if boxes and len(boxes[0]) == 5 else 0.0,
             "match_type": match_type,
-            "match_score": float(match_score)
+            "match_score": float(match_score),
+            "plate_alert": plate_alert
         })
     except Exception as e:
         print(f"Error in api_detect: {e}")
@@ -1004,7 +1011,12 @@ def api_lookup_plate():
         'match_type': record.pop('_match', 'exact'),
         'match_score': 1.0
     }
-    return jsonify({"success": True, "record": session['detected_vehicle']})
+
+    # Fake plate check
+    from utils.ocr import check_plate_authenticity
+    plate_alert = check_plate_authenticity(plate)
+
+    return jsonify({"success": True, "record": session['detected_vehicle'], "plate_alert": plate_alert})
 
 # ============================================
 # UTILITY ROUTES
@@ -1189,4 +1201,4 @@ def download_bill(bill_id):
 # ============================================
 
 if __name__ == "__main__":
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(debug=True, host='0.0.0.0', port=5000, threaded=True)

@@ -107,23 +107,19 @@ class WalletManager:
         return r
 
     def _write(self):
-        """Write wallet data to CSV file with error handling"""
-        with self.lock:
-            try:
-                # Create backup before writing
-                if os.path.exists(self.csv_path):
-                    backup_path = self.csv_path + '.backup'
-                    try:
-                        import shutil
-                        shutil.copy2(self.csv_path, backup_path)
-                    except Exception:
-                        pass
-                
-                # Write to CSV
-                self.df.to_csv(self.csv_path, index=False, encoding='utf-8')
-            except Exception as e:
-                print(f"Error writing wallet file: {e}")
-                raise
+        """Write wallet data to CSV file — must be called with lock already held."""
+        try:
+            if os.path.exists(self.csv_path):
+                backup_path = self.csv_path + '.backup'
+                try:
+                    import shutil
+                    shutil.copy2(self.csv_path, backup_path)
+                except Exception:
+                    pass
+            self.df.to_csv(self.csv_path, index=False, encoding='utf-8')
+        except Exception as e:
+            print(f"Error writing wallet file: {e}")
+            raise
 
     def debit(self, number_plate_id, amount, note=None):
         """Debit amount from wallet"""

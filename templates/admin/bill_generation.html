@@ -90,6 +90,11 @@ body{background:var(--dk-bg)!important;color:var(--tx)!important}
             </button>
           </div>
           <div id="plateStatus"></div>
+          <!-- Fake plate alert -->
+          <div id="fakeAlertBox" style="display:none;margin-top:.75rem;padding:.75rem 1rem;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.3);border-radius:9px;font-size:.83rem;color:#fca5a5">
+            <div style="font-weight:700;margin-bottom:.35rem"><i class="bi bi-exclamation-triangle-fill me-1"></i>Suspicious Plate Detected</div>
+            <ul id="fakeAlertReasons" style="margin:0;padding-left:1.2rem"></ul>
+          </div>
         </div>
       </div>
 
@@ -296,6 +301,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 selFuel.dispatchEvent(new Event('change'));
                 showStatus('ok', '<i class="bi bi-check-circle me-1"></i>Vehicle found — ' + r.number_plate_id);
                 refresh();
+                // fake plate alert
+                if (data.plate_alert && data.plate_alert.is_suspicious) {
+                    showFakeAlert(data.plate_alert);
+                } else {
+                    document.getElementById('fakeAlertBox').style.display = 'none';
+                }
             } else {
                 showStatus('err', '<i class="bi bi-x-circle me-1"></i>' + (data.error || 'Not found'));
             }
@@ -312,6 +323,13 @@ document.addEventListener('DOMContentLoaded', function () {
     function showStatus(type, html){
         const el = document.getElementById('plateStatus');
         el.innerHTML = `<span class="plate-status ${type}">${html}</span>`;
+    }
+
+    function showFakeAlert(alert) {
+        const box = document.getElementById('fakeAlertBox');
+        const ul  = document.getElementById('fakeAlertReasons');
+        ul.innerHTML = alert.reasons.map(r => `<li>${r}</li>`).join('');
+        box.style.display = 'block';
     }
 
     // ── Quantity helpers ─────────────────────────────────────────────
@@ -373,6 +391,12 @@ document.addEventListener('DOMContentLoaded', function () {
         if (qty <= 0)
             return alert('Please enter a valid fuel quantity (> 0).');
 
+        // warn if fake plate alert is visible
+        const fakeBox = document.getElementById('fakeAlertBox');
+        if (fakeBox && fakeBox.style.display !== 'none') {
+            if (!confirm('⚠️ This plate has been flagged as suspicious.\n\nDo you still want to proceed with bill generation?')) return;
+        }
+
         const before = parseFloat(inpBefore.value.replace(/[₹,]/g,'')) || 0;
         const tot    = parseFloat(inpTotal.value.replace(/[₹,]/g,''))  || 0;
         if (before < tot)
@@ -381,12 +405,26 @@ document.addEventListener('DOMContentLoaded', function () {
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing…';
 
+        // 15-second timeout so the button never stays stuck forever
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 15000);
+
         try {
             const res  = await fetch('/api/generate-bill', {
                 method: 'POST',
                 headers: {'Content-Type':'application/json'},
-                body: JSON.stringify({number_plate_id:plate, wallet_id:wid, fuel_type:fuel, liters:qty})
+                body: JSON.stringify({number_plate_id:plate, wallet_id:wid, fuel_type:fuel, liters:qty}),
+                signal: controller.signal
             });
+            clearTimeout(timer);
+
+            // handle non-JSON responses (e.g. redirect to login page)
+            const contentType = res.headers.get('content-type') || '';
+            if (!contentType.includes('application/json')) {
+                alert('Session expired or server error. Please refresh and log in again.');
+                return;
+            }
+
             const data = await res.json();
 
             if (res.status === 401) {
@@ -408,10 +446,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 alert('Error: ' + (data.error || 'Failed to generate bill'));
             }
         } catch(err) {
-            alert('Network error. Please try again.');
+            clearTimeout(timer);
+            if (err.name === 'AbortError') {
+                alert('Request timed out. The server is taking too long — please restart the Flask app and try again.');
+            } else {
+                alert('Network error: ' + err.message);
+            }
         } finally {
             submitBtn.disabled = false;
-            submitBtn.innerHTML = '<i class="bi bi-check-circle-fill"></i> Generate Bill & Deduct from Wallet';
+            submitBtn.innerHTML = '<i class="bi bi-check-circle-fill"></i> Generate Bill &amp; Deduct from Wallet';
         }
     });
 

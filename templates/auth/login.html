@@ -1,150 +1,254 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - FuelIQ</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <style>
-        .login-container {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: linear-gradient(135deg, #7484cc 0%, #2f0d52 100%);
-        }
-        .login-card {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            overflow: hidden;
-            max-width: 450px;
-            width: 100%;
-        }
-        .login-header {
-            background: linear-gradient(135deg, #0739a5, #051a53);
-            color: white;
-            padding: 2rem;
-            text-align: center;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            
-        }
-        .login-body {
-            padding: 2rem;
-        }
-        .login-tabs {
-            display: flex;
-            border-bottom: 2px solid #577cc7;
-            margin-bottom: 1.5rem;
-        }
-        .login-tab {
-            flex: 1;
-            padding: 0.75rem;
-            text-align: center;
-            cursor: pointer;
-            border: none;
-            background: none;
-            color: #6b7280;
-            font-weight: 500;
-            transition: all 0.3s;
-        }
-        .login-tab.active {
-            color: #2563eb;
-            border-bottom: 3px solid #2563eb;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FuelIQ — Login</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+  <style>
+    :root {
+      --bg:      #0d0f18;
+      --surface: #161927;
+      --card:    #1c1f2e;
+      --border:  #272b3f;
+      --accent:  #6c63ff;
+      --accent-h:#5a52e0;
+      --glow:    rgba(108,99,255,.22);
+      --tx:      #e2e8f0;
+      --tm:      #64748b;
+      --td:      #94a3b8;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      background: var(--bg);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── animated background particles ── */
+    .bg-glow {
+      position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none;
+    }
+    .bg-glow span {
+      position: absolute; border-radius: 50%;
+      background: var(--accent); opacity: .06; animation: float 12s infinite ease-in-out;
+    }
+    .bg-glow span:nth-child(1){ width:420px;height:420px;top:-120px;left:-100px;animation-delay:0s; }
+    .bg-glow span:nth-child(2){ width:300px;height:300px;bottom:-80px;right:-60px;animation-delay:4s; }
+    .bg-glow span:nth-child(3){ width:180px;height:180px;top:40%;left:60%;animation-delay:8s; }
+    @keyframes float {
+      0%,100%{ transform:translateY(0) scale(1); }
+      50%    { transform:translateY(-30px) scale(1.05); }
+    }
+
+    /* ── layout ── */
+    .page-wrap {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 2rem 1rem; position: relative; z-index: 1;
+    }
+
+    /* ── brand ── */
+    .brand { text-align: center; margin-bottom: 2rem; }
+    .brand-icon {
+      width: 64px; height: 64px; border-radius: 18px;
+      background: linear-gradient(135deg, var(--accent), #a78bfa);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.8rem; color: #fff; margin: 0 auto 1rem;
+      box-shadow: 0 8px 32px var(--glow);
+    }
+    .brand h1 { font-size: 2rem; font-weight: 800; color: var(--tx); letter-spacing: .5px; }
+    .brand p  { color: var(--tm); font-size: .9rem; margin-top: .25rem; }
+
+    /* ── card ── */
+    .login-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      width: 100%; max-width: 420px;
+      padding: 2rem;
+      box-shadow: 0 24px 64px rgba(0,0,0,.4);
+    }
+
+    /* ── tabs ── */
+    .tab-row {
+      display: flex; gap: .5rem;
+      background: var(--surface);
+      border-radius: 10px; padding: .3rem;
+      margin-bottom: 1.75rem;
+    }
+    .tab-btn {
+      flex: 1; padding: .55rem; border: none; border-radius: 8px;
+      background: transparent; color: var(--tm);
+      font-size: .87rem; font-weight: 600; cursor: pointer;
+      transition: all .2s; display: flex; align-items: center; justify-content: center; gap: .4rem;
+    }
+    .tab-btn.active {
+      background: var(--accent); color: #fff;
+      box-shadow: 0 4px 14px var(--glow);
+    }
+
+    /* ── form elements ── */
+    .f-label { font-size: .78rem; color: var(--td); margin-bottom: .35rem; display: block; }
+    .f-input {
+      width: 100%; background: var(--bg); border: 1px solid var(--border);
+      border-radius: 9px; color: var(--tx); padding: .65rem .9rem;
+      font-size: .9rem; transition: border-color .2s, box-shadow .2s; outline: none;
+    }
+    .f-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--glow);
+    }
+    .f-input::placeholder { color: var(--tm); }
+    .f-group { margin-bottom: 1.1rem; position: relative; }
+    .f-icon {
+      position: absolute; right: .85rem; top: 50%; transform: translateY(-50%);
+      color: var(--tm); font-size: 1rem; pointer-events: none;
+    }
+
+    /* ── submit button ── */
+    .btn-login {
+      width: 100%; padding: .75rem; border: none; border-radius: 10px;
+      background: var(--accent); color: #fff;
+      font-size: .95rem; font-weight: 700; cursor: pointer;
+      transition: background .2s, box-shadow .2s; margin-top: .5rem;
+      display: flex; align-items: center; justify-content: center; gap: .5rem;
+    }
+    .btn-login:hover { background: var(--accent-h); box-shadow: 0 6px 20px var(--glow); }
+
+    /* ── alerts ── */
+    .alert {
+      border-radius: 9px; font-size: .85rem; padding: .65rem .9rem;
+      margin-bottom: 1rem; border: 1px solid transparent;
+    }
+    .alert-danger  { background: rgba(239,68,68,.12);  color: #fca5a5; border-color: rgba(239,68,68,.25); }
+    .alert-success { background: rgba(34,197,94,.12);  color: #86efac; border-color: rgba(34,197,94,.25); }
+    .alert-info    { background: rgba(108,99,255,.12); color: #a5b4fc; border-color: rgba(108,99,255,.25); }
+    .btn-close { filter: invert(.6); }
+
+    /* ── footer ── */
+    footer {
+      text-align: center; padding: 1.25rem;
+      color: var(--tm); font-size: .8rem;
+      border-top: 1px solid var(--border);
+      position: relative; z-index: 1;
+    }
+    footer strong { color: var(--accent); }
+  </style>
 </head>
 <body>
-    <div class="login-container">
-        <div class="login-card">
-            <div class="login-header">
-                <h2 class="mb-1"><strong>FuelIQ</strong></h2>
-                <p class="mb-0" style="opacity: 0.9;">Smart Fueling System</p>
-            </div>
-            <div class="login-body">
-                <div class="login-tabs">
-                    <button class="login-tab active" data-tab="admin">
-                        <i class="bi bi-shield-lock"></i> Admin
-                    </button>
-                    <button class="login-tab" data-tab="user">
-                        <i class="bi bi-person"></i> User
-                    </button>
-                </div>
 
-                {% with messages = get_flashed_messages(with_categories=true) %}
-                    {% if messages %}
-                        {% for category, message in messages %}
-                            <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show">
-                                {{ message }}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                            </div>
-                        {% endfor %}
-                    {% endif %}
-                {% endwith %}
+  <div class="bg-glow">
+    <span></span><span></span><span></span>
+  </div>
 
-                <!-- Admin Login Form -->
-                <form id="adminForm" method="POST" action="{{ url_for('login') }}">
-                    <input type="hidden" name="login_type" value="admin">
-                    <div class="mb-3">
-                        <label class="form-label">Username</label>
-                        <input type="text" class="form-control" name="username" required autofocus>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Password</label>
-                        <input type="password" class="form-control" name="password" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary w-100">
-                        <i class="bi bi-box-arrow-in-right"></i> Login as Admin
-                    </button>
-                </form>
+  <div class="page-wrap">
 
-                <!-- User Login Form -->
-                <form id="userForm" method="POST" action="{{ url_for('login') }}" style="display: none;">
-                    <input type="hidden" name="login_type" value="user">
-                    <div class="mb-3">
-                        <label class="form-label">Wallet ID</label>
-                        <input type="text" class="form-control" name="username" placeholder="Enter your Wallet ID" required>
-                        <small class="text-muted">Example: W1, W2, etc.</small>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Password (Optional)</label>
-                        <input type="password" class="form-control" name="password" placeholder="Optional password/OTP">
-                        <small class="text-muted">Password authentication coming soon</small>
-                    </div>
-                    <button type="submit" class="btn btn-success w-100">
-                        <i class="bi bi-person-check"></i> Login as User
-                    </button>
-                </form>
-
-                <div class="mt-4 text-center">
-                    <small class="text-muted">
-                        <i class="bi bi-info-circle"></i> Demo: Admin (admin/admin123) | User (Wallet ID from database)
-                    </small>
-                </div>
-            </div>
-        </div>
+    <div class="brand">
+      <div class="brand-icon"><i class="bi bi-fuel-pump-fill"></i></div>
+      <h1>FuelIQ</h1>
+      <p>Smarter fueling with intelligent billing</p>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        document.querySelectorAll('.login-tab').forEach(tab => {
-            tab.addEventListener('click', function() {
-                const tabType = this.dataset.tab;
-                
-                // Update tabs
-                document.querySelectorAll('.login-tab').forEach(t => t.classList.remove('active'));
-                this.classList.add('active');
-                
-                // Show/hide forms
-                document.getElementById('adminForm').style.display = tabType === 'admin' ? 'block' : 'none';
-                document.getElementById('userForm').style.display = tabType === 'user' ? 'block' : 'none';
-            });
-        });
-    </script>
+    <div class="login-card">
+
+      <!-- tabs -->
+      <div class="tab-row">
+        <button class="tab-btn active" data-tab="admin">
+          <i class="bi bi-shield-lock-fill"></i> Admin
+        </button>
+        <button class="tab-btn" data-tab="user">
+          <i class="bi bi-person-fill"></i> User
+        </button>
+      </div>
+
+      <!-- flash messages -->
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show">
+              {{ message }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+
+      <!-- Admin form -->
+      <form id="adminForm" method="POST" action="{{ url_for('login') }}">
+        <input type="hidden" name="login_type" value="admin">
+        <div class="f-group">
+          <label class="f-label">Username</label>
+          <input class="f-input" type="text" name="username" placeholder="Enter username" required autofocus>
+          <i class="bi bi-person f-icon"></i>
+        </div>
+        <div class="f-group">
+          <label class="f-label">Password</label>
+          <input class="f-input" type="password" name="password" placeholder="Enter password" required id="adminPwd">
+          <i class="bi bi-lock f-icon" id="adminPwdIcon" style="cursor:pointer;pointer-events:all"
+             onclick="togglePwd('adminPwd','adminPwdIcon')"></i>
+        </div>
+        <button type="submit" class="btn-login">
+          <i class="bi bi-box-arrow-in-right"></i> Sign In
+        </button>
+      </form>
+
+      <!-- User form -->
+      <form id="userForm" method="POST" action="{{ url_for('login') }}" style="display:none">
+        <input type="hidden" name="login_type" value="user">
+        <div class="f-group">
+          <label class="f-label">Wallet ID</label>
+          <input class="f-input" type="text" name="username" placeholder="e.g. WALLET123456" required>
+          <i class="bi bi-wallet2 f-icon"></i>
+        </div>
+        <div class="f-group">
+          <label class="f-label">Password <span style="color:var(--tm)">(optional)</span></label>
+          <input class="f-input" type="password" name="password" placeholder="Leave blank if not set" id="userPwd">
+          <i class="bi bi-lock f-icon" id="userPwdIcon" style="cursor:pointer;pointer-events:all"
+             onclick="togglePwd('userPwd','userPwdIcon')"></i>
+        </div>
+        <button type="submit" class="btn-login" style="background:#22c55e">
+          <i class="bi bi-person-check-fill"></i> Access Wallet
+        </button>
+      </form>
+
+    </div>
+  </div>
+
+  <footer>
+    <strong>FuelIQ</strong> &nbsp;·&nbsp; Smarter fueling with intelligent billing
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // tab switching
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', function () {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        const t = this.dataset.tab;
+        document.getElementById('adminForm').style.display = t === 'admin' ? 'block' : 'none';
+        document.getElementById('userForm').style.display  = t === 'user'  ? 'block' : 'none';
+      });
+    });
+
+    // password toggle
+    function togglePwd(inputId, iconId) {
+      const inp  = document.getElementById(inputId);
+      const icon = document.getElementById(iconId);
+      if (inp.type === 'password') {
+        inp.type = 'text';
+        icon.className = 'bi bi-eye-slash f-icon';
+      } else {
+        inp.type = 'password';
+        icon.className = 'bi bi-lock f-icon';
+      }
+      icon.style.cssText = 'cursor:pointer;pointer-events:all';
+    }
+  </script>
 </body>
 </html>
-
-
