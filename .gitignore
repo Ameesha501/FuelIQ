@@ -29,7 +29,7 @@ env/
 Thumbs.db
 
 # Model weights (large binary — store in releases or Git LFS)
-*.pt
+# *.pt   <-- commented out so yolov8n.pt is included in deploy
 runs/
 
 # Uploads (user data)
