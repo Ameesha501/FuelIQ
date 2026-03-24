@@ -1,3 +1,12 @@
+---
+title: FuelIQ
+emoji: ⛽
+colorFrom: indigo
+colorTo: purple
+sdk: docker
+pinned: false
+---
+
 # FuelIQ — Smart Fueling System
 
 A Flask-based fuel station management system with number plate detection (YOLOv8 + EasyOCR), prepaid wallet billing, PDF bill generation, and email delivery.
