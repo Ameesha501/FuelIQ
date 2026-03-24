@@ -28,8 +28,8 @@ env/
 .DS_Store
 Thumbs.db
 
-# Model weights (large binary — store in releases or Git LFS)
-# *.pt   <-- commented out so yolov8n.pt is included in deploy
+# Model weights — downloaded at runtime, not stored in git
+*.pt
 runs/
 
 # Uploads (user data)

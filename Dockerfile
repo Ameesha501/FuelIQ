@@ -3,7 +3,7 @@ FROM python:3.11-slim
 # System deps for OpenCV + EasyOCR
 RUN apt-get update && apt-get install -y \
     libglib2.0-0 libsm6 libxext6 libxrender-dev libgomp1 \
-    libgl1-mesa-glx ffmpeg \
+    libgl1-mesa-glx ffmpeg wget \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -11,6 +11,9 @@ WORKDIR /app
 # Install Python deps first (cached layer)
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
+
+# Download YOLOv8n base weights at build time
+RUN wget -q https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt -O yolov8n.pt
 
 # Copy app
 COPY . .
